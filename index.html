@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="ru">
+<!DOCTYPE html>
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -48,6 +49,48 @@
       padding: 16px 32px;
       font-size: 1.3em;
     }
+
+    /* Адаптив для мобильных */
+    @media (max-width: 768px) {
+      #map {
+        position: absolute;
+        top: 200px;
+        bottom: 200px;
+        left: 0;
+        right: 0;
+        height: auto;
+      }
+      .sidebar {
+        position: absolute;
+        width: 100%;
+        height: 200px;
+        left: 0;
+        padding: 10px;
+        box-sizing: border-box;
+        overflow: auto;
+      }
+      .left-panel {
+        top: 0;
+        bottom: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .right-panel {
+        bottom: 0;
+        top: auto;
+        font-size: 1em;
+      }
+      .controls {
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      button {
+        margin: 5px;
+        padding: 12px 24px;
+        font-size: 1em;
+      }
+    }
   </style>
 </head>
 <body>
@@ -62,7 +105,9 @@
   <div class="sidebar right-panel">
     <h3>Информация</h3>
     <div id="marker-info">Выберите маркер на карте</div>
-  </div>  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>  <script>
+  </div>  
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>  
+  <script>
     const mapDataList = [
       {
         image: 'map1.jpg',
@@ -134,7 +179,7 @@
         imageOverlay = L.imageOverlay(mapData.image, bounds).addTo(map);
         map.setMaxBounds(bounds);
         map.fitBounds(bounds);
-document.getElementById('legend').src = mapData.legend;
+        document.getElementById('legend').src = mapData.legend;
         clearMarkers();
 
         mapData.markers.forEach(({ coords, text }) => {
@@ -177,5 +222,6 @@ document.getElementById('legend').src = mapData.legend;
     }
 
     window.onload = initMap;
-  </script></body>
+  </script>
+</body>
 </html>
