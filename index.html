@@ -1,0 +1,181 @@
+<!DOCTYPE html><html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Оборона Севастополя — Интерактивная карта</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: sans-serif;
+      background-color: #e0e0e0;
+    }
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 25%;
+      right: 25%;
+      z-index: 1;
+      transition: opacity 0.1s linear;
+      background-color: #ccc;
+    }
+    .sidebar {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 25%;
+      background: #f4f4f4;
+      overflow: auto;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    .left-panel { left: 0; }
+    .right-panel { right: 0; font-size: 1.1em; }
+    .legend {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    button {
+      padding: 16px 32px;
+      font-size: 1.3em;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar left-panel">
+    <img id="legend" src="legend1.jpg" alt="Легенда карты" class="legend" />
+    <div class="controls">
+      <button onclick="prevMap()" id="prevBtn">← Назад</button>
+      <button onclick="nextMap()" id="nextBtn">Вперёд →</button>
+    </div>
+  </div>
+  <div id="map"></div>
+  <div class="sidebar right-panel">
+    <h3>Информация</h3>
+    <div id="marker-info">Выберите маркер на карте</div>
+  </div>  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>  <script>
+    const mapDataList = [
+      {
+        image: 'map1.jpg',
+        legend: 'legend1.jpg',
+        markers: [
+          { coords: [600, 1600], text: '30 октября 1941 года немецкие войска начали наступление на Севастополь, захватив Федюхины высоты, что позволило им установить контроль над стратегически важными позициями.' },
+          { coords: [900, 1300], text: 'В начале ноября 1941 года немецкие войска предприняли попытку захвата Сапун-горы, ключевого оборонительного рубежа на подступах к Севастополю, но были отброшены советскими силами.' },
+          { coords: [1200, 1100], text: '11 ноября 1941 года начались бои за Балаклаву, важный портовый город, который служил южным флангом обороны Севастополя.' },
+        ]
+      },
+      {
+        image: 'map2.jpg',
+        legend: 'legend2.jpg',
+        markers: [
+          { coords: [800, 1400], text: '17 декабря 1941 года немецкие войска начали второе наступление, сосредоточив удары на районе Северной бухты, стремясь прорваться к центру города.' },
+          { coords: [1100, 1200], text: 'В конце декабря 1941 года советские войска успешно отбили атаки на Камышовую бухту, сохранив контроль над важным участком обороны.' },
+          { coords: [1400, 1000], text: 'В январе 1942 года немецкие войска предприняли попытку захвата Малахова кургана, но были остановлены ожесточённым сопротивлением советских защитников.' },
+        ]
+      },
+      {
+        image: 'map3.jpg',
+        legend: 'legend3.jpg',
+        markers: [
+          { coords: [1000, 1000], text: '2 июня 1942 года началось третье наступление немецких войск, сопровождаемое массированными артиллерийскими ударами по 35-й береговой батарее.' },
+          { coords: [1250, 950], text: 'В конце июня 1942 года немецкие войска прорвались к Казачьей бухте, что стало предвестником падения города.' },
+          { coords: [1500, 800], text: '4 июля 1942 года советские войска оставили Севастополь, отступив к мысу Херсонес, где продолжали сопротивление до 12 июля.' },
+        ]
+      },
+    ];
+
+    let currentMapIndex = 0;
+    let map, imageOverlay;
+    const imageSize = 2492;
+    const bounds = [[0, 0], [imageSize, imageSize]];
+
+    function initMap() {
+      map = L.map('map', {
+        crs: L.CRS.Simple,
+        minZoom: -2,
+        maxZoom: 2,
+        zoomSnap: 0.01,
+        zoomDelta: 0.1,
+        wheelPxPerZoomLevel: 100,
+      });
+
+      map.setMaxBounds(bounds);
+      map.fitBounds(bounds);
+
+      map.on('zoomend', () => {
+        const minZoomToFit = map.getBoundsZoom(bounds, false);
+        if (map.getZoom() < minZoomToFit) {
+          map.setZoom(minZoomToFit);
+        }
+      });
+
+      loadMap(currentMapIndex);
+    }
+
+    function loadMap(index) {
+      const mapData = mapDataList[index];
+      const mapDiv = document.getElementById('map');
+      mapDiv.style.transition = 'opacity 0.1s linear';
+      mapDiv.style.opacity = 0.5;
+
+      setTimeout(() => {
+        if (imageOverlay) {
+          map.removeLayer(imageOverlay);
+        }
+        imageOverlay = L.imageOverlay(mapData.image, bounds).addTo(map);
+        map.setMaxBounds(bounds);
+        map.fitBounds(bounds);
+document.getElementById('legend').src = mapData.legend;
+        clearMarkers();
+
+        mapData.markers.forEach(({ coords, text }) => {
+          const marker = L.marker(coords).addTo(map);
+          marker.on('click', () => {
+            document.getElementById('marker-info').innerText = text;
+          });
+        });
+
+        mapDiv.style.opacity = 1;
+        updateButtonStates();
+      }, 100);
+    }
+
+    function clearMarkers() {
+      map.eachLayer(layer => {
+        if (layer instanceof L.Marker) {
+          map.removeLayer(layer);
+        }
+      });
+    }
+
+    function nextMap() {
+      if (currentMapIndex < mapDataList.length - 1) {
+        currentMapIndex++;
+        loadMap(currentMapIndex);
+      }
+    }
+
+    function prevMap() {
+      if (currentMapIndex > 0) {
+        currentMapIndex--;
+        loadMap(currentMapIndex);
+      }
+    }
+
+    function updateButtonStates() {
+      document.getElementById('prevBtn').disabled = currentMapIndex === 0;
+      document.getElementById('nextBtn').disabled = currentMapIndex === mapDataList.length - 1;
+    }
+
+    window.onload = initMap;
+  </script></body>
+</html>
